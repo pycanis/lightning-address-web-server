@@ -17,7 +17,7 @@ async function generateQrCode() {
     console.log(qrCodeImage)
 
     fs.writeFileSync('qr_code.png', qrCodeImage, 'base64');
-    
+
     console.log('QR code generated and saved as qr_code.png');
   } catch (error) {
     console.error('Error generating QR code:', error);
