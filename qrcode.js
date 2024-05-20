@@ -1,24 +1,43 @@
+require('dotenv').config()
+
 const fs = require('fs');
 const qrcode = require('qrcode');
+const { bech32 } = require("bech32");
+const { getLnurl } = require('./utils');
 
-if (!process.env.LN_ADDRESS) {
-  throw new Error('Lightning Address must be defined')
+const fileName = 'qr_code.png'
+
+const bech32EncodeLnurl = (lnurl) => {
+  const words = bech32.toWords(Buffer.from(lnurl, 'utf8'))
+
+  const bech32Encoded = bech32.encode("lnurl", words)
+
+  return bech32Encoded
 }
 
-// Function to generate the QR code and save it as a PNG file
+const toUpperCaseIfNeeded = (data) => data.includes('lnurl') ? data.toUpperCase() : data
+
 async function generateQrCode() {
+  const address = process.argv[2]
+
+  if (!address) {
+    throw new Error('Address must be defined')
+  }
+
+  const data = address.includes('@') ? bech32EncodeLnurl(getLnurl(address)) : address
+
+//  const prefix = data.includes('lnurl') ? 'lightning' : 'bitcoin'
+
   try {
-    const qrCodeDataUrl = await qrcode.toDataURL(process.env.LN_ADDRESS);
+    const qrCodeDataUrl = await qrcode.toDataURL(toUpperCaseIfNeeded(data));
 
     const qrCodeImage = qrCodeDataUrl.split(',')[1]; // Remove data URI prefix
 
-    console.log(qrCodeDataUrl)
-
     console.log(qrCodeImage)
 
-    fs.writeFileSync('qr_code.png', qrCodeImage, 'base64');
+    fs.writeFileSync(fileName, qrCodeImage, 'base64');
 
-    console.log('QR code generated and saved as qr_code.png');
+    console.log(`QR code generated and saved as ${fileName}`);
   } catch (error) {
     console.error('Error generating QR code:', error);
   }

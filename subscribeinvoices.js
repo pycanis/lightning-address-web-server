@@ -10,20 +10,11 @@ const subscribeInvoices = ({ lnd, commentsMap }) => {
     const comment = commentsMap.get(payment_request)
 
     if (state === 'OPEN') {
-      await fetch(process.env.NTFY_URL, { method:"POST", headers: { Priority: 3, Title: `New LN invoice generated for ${data.value} sats.`, Authorization: process.env.NTFY_AUTH }, body: comment ? `Comment: ${comment}` : undefined })
+      await fetch(process.env.NTFY_URL, { method:"POST", headers: { Priority: 3, Title: `New LN invoice generated for ${data.value} sats.`, Authorization: process.env.NTFY_AUTH }, body: comment ? `Comment: ${comment}` : 'No comment :(' })
     }
 
     if (state === 'SETTLED') {
-      await fetch(process.env.NTFY_URL, { method:"POST", headers: { Priority: 3, Title: `LN invoice of ${data.value} sats was paid.`, Authorization: process.env.NTFY_AUTH }, body: comment ? `Comment: ${comment}` : undefined })
-
-      // for (const lnJukeboxWebhookUrl of lnJukeboxWebhookUrls) {
-      //   try {
-      //     await axios.post(lnJukeboxWebhookUrl, { paymentRequest: payment_request },
-      //       { headers: { Authorization: process.env.LN_JUKEBOX_WEBHOOK_SECRET } })
-      //   } catch (e) {
-      //     console.log(`failed to push update to ln jukebox - ${lnJukeboxWebhookUrl}`)
-      //   }
-      // }
+      await fetch(process.env.NTFY_URL, { method:"POST", headers: { Priority: 3, Title: `LN invoice of ${data.value} sats was paid.`, Authorization: process.env.NTFY_AUTH }, body: comment ? `Comment: ${comment}` : 'No comment :(' })
     }
   })
 }
