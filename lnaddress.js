@@ -1,13 +1,9 @@
 const express = require('express')
 const crypto = require('crypto');
-const { parseLightningAddress } = require('./utils')
 
-const LN_ADDRESS = process.env.LN_ADDRESS
-const QR_CODE = process.env.QR_CODE
+const DEFAULT_DOMAIN = process.env.DEFAULT_DOMAIN
 
 const app = express()
-
-const { alias, domain } = parseLightningAddress(LN_ADDRESS)
 
 const addInvoice = async ({ amount, description_hash, description, lnd }) => {
   try {
@@ -37,11 +33,17 @@ const sha256 = (input) => {
 }
 
 const startLnAddressService = ({ port, lnd, commentsMap }) => {
-  app.get(`/.well-known/lnurlp/${alias}`, async (req, res) => {
+  app.get(`/.well-known/lnurlp/:alias`, async (req, res) => {
     console.log(`Request received:`)
     console.log({ query: req.query, headers: req.headers, url: req.url })
 
-    const metadata = JSON.stringify([["text/plain", `Sats for ${LN_ADDRESS}`], ...(QR_CODE ? [["image/png;base64", QR_CODE]] : [])])
+    const alias = req.params.alias;
+
+    if (!alias) {
+      return res.status(400).json({ error: "Alias is required" })
+    }
+
+    const metadata = JSON.stringify([["text/plain", `Sats for ${alias}`]])
 
     // comment is meant to be made by user making a payment
     // description is made by my services
@@ -65,7 +67,7 @@ const startLnAddressService = ({ port, lnd, commentsMap }) => {
     }
 
     res.json({
-      callback: `https://${domain}/.well-known/lnurlp/${alias}`,
+      callback: `https://${DEFAULT_DOMAIN}/.well-known/lnurlp/${alias}`,
       tag: "payRequest",
       maxSendable: 1000000000,
       minSendable: 1000,

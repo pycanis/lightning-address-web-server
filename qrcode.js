@@ -3,9 +3,15 @@ require('dotenv').config()
 const fs = require('fs');
 const qrcode = require('qrcode');
 const { bech32 } = require("bech32");
-const { getLnurl } = require('./utils');
 
-const fileName = 'qr_code.png'
+const getLnurl = (lightningAddress) => {
+  const lnAddressParts = lightningAddress.split('@')
+
+  const alias = lnAddressParts[0]
+  const domain = lnAddressParts[1]
+
+  return `https://${domain}/.well-known/lnurlp/${alias}`
+}
 
 const bech32EncodeLnurl = (lnurl) => {
   const words = bech32.toWords(Buffer.from(lnurl, 'utf8'))
@@ -26,7 +32,7 @@ async function generateQrCode() {
 
   const data = address.includes('@') ? bech32EncodeLnurl(getLnurl(address)) : address
 
-//  const prefix = data.includes('lnurl') ? 'lightning' : 'bitcoin'
+  console.log(data)
 
   try {
     const qrCodeDataUrl = await qrcode.toDataURL(toUpperCaseIfNeeded(data));
@@ -34,6 +40,8 @@ async function generateQrCode() {
     const qrCodeImage = qrCodeDataUrl.split(',')[1]; // Remove data URI prefix
 
     console.log(qrCodeImage)
+
+    const fileName = `${address}.png`
 
     fs.writeFileSync(fileName, qrCodeImage, 'base64');
 
